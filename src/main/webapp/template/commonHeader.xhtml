@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+<body>
+	<ui:composition>
+		<p:menubar id="menubar">
+			<p:submenu label="Profiles" icon="ui-icon-home">
+				<p:menuitem value="JBoss Hosts" url="/pages/viewProfile.jsf"
+					icon="ui-icon-shuffle" />
+				<p:menuitem value="Quit" url="https://www.docker.com/"
+					icon="ui-icon-power" />
+			</p:submenu>
+
+			<p:submenu label="Swagger" icon="ui-icon-cart">
+				<p:menuitem value="REST API" url="/swagger.html" target="_blank"
+					icon="ui-icon-video" />
+			</p:submenu>
+
+
+			<p:submenu label="NEXUS" icon="ui-icon-cart">
+				<p:menuitem value="releases"
+					url="http://localhost:8081/nexus/#view-repositories;releases~browsestorage"
+					target="_blank" icon="ui-icon-video" />
+			</p:submenu>
+
+			<p:submenu label="GIT" icon="ui-icon-cart">
+				<p:menuitem value="Commits"
+					url="http://localhost:8083/log/JDO.git/master" target="_blank"
+					icon="ui-icon-video" />
+				<p:menuitem value="Services"
+					url="http://localhost:8083/tree/JDO.git/master/domains"
+					target="_blank" icon="ui-icon-video" />
+			</p:submenu>
+
+			<p:submenu label="Reports" icon="ui-icon-print">
+				<p:menuitem value="Accountancy" url="/export" icon="ui-icon-document" />
+			</p:submenu>
+
+
+
+
+			<p:submenu label="Help" icon="ui-icon-help">
+				<p:menuitem value="Deployment Automation" target="_blank"
+					url="http://camunda.com/" icon="ui-icon-info" />
+				<p:menuitem value="About Technology" target="_blank"
+					url="http://www.mastertheboss.com/indici/java-ee-6-tutorials"
+					icon="ui-icon-info" />
+			</p:submenu>
+
+
+			<p:menuitem value="Quit" url="https://www.docker.com/"
+				icon="ui-icon-close" />
+
+		</p:menubar>
+
+		<p:ajaxStatus
+			style="width:64px;height:64px;position:fixed;right:5px;bottom:60px">
+			<f:facet name="start">
+				<p:graphicImage value="/resources/images/loading.gif" />
+			</f:facet>
+
+			<f:facet name="complete">
+				<h:outputText value="" />
+			</f:facet>
+		</p:ajaxStatus>
+
+	</ui:composition>
+</body>
+</html>
+
+

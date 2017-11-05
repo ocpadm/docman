@@ -1,0 +1,144 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+
+<h:head>
+	<title>Profile Details</title>
+
+
+</h:head>
+
+<h:body>
+
+	<f:facet name="last">
+		<h:outputStylesheet library="default" name="css/default.css" />
+	</f:facet>
+
+	<h:form>
+
+		<p:panel id="updatePanel" autoUpdate="false">
+			<p:growl id="growl" sticky="true" showDetail="true" />
+			<p:messages id="messages" />
+			<h:panelGrid columns="2" columnClasses="label, value">
+
+				<h:outputText value="name" />
+				<h:inputText value="#{profileController.profile.name}"
+					required="true"
+					requiredMessage="Please enter a valid artifact name" maxlength="40"
+					size="40" />
+
+				<h:outputText value="description" />
+				<h:inputText value="#{profileController.profile.description}"
+					required="true"
+					requiredMessage="Please enter a valid artifact name" maxlength="70"
+					size="70" />
+
+				<h:outputText value="environment" />
+				<p:selectOneMenu value="#{profileController.profile.environment}"
+					effect="fold" editable="false" maxlength="10" size="10"
+					style="font-size: 9px;">
+					<f:selectItem itemLabel="DEV" itemValue="DEV" />
+					<f:selectItem itemLabel="EDU" itemValue="EDU" />
+					<f:selectItem itemLabel="SIT" itemValue="SIT" />
+					<f:selectItem itemLabel="UAT" itemValue="UAT" />
+					<f:selectItem itemLabel="PRD" itemValue="PRD" />
+				</p:selectOneMenu>
+
+				<h:outputText value="jira ISSUE Key" />
+				<p:autoComplete value="#{profileController.profile.jiraKey}"
+					completeMethod="#{profileController.completeJiraKey}"
+					style="font-size: 9px;" />
+
+				<h:outputText value="OCP template" />
+				<p:selectOneMenu value="#{profileController.profile.template}"
+					effect="fold" editable="false" maxlength="30" size="30"
+					style="font-size: 9px;">
+					<f:selectItem itemLabel="eap70-template" itemValue="eap70-template" />
+					<f:selectItem itemLabel="eap71-template" itemValue="eap71-template" />
+					<f:selectItem itemLabel="eap72-template" itemValue="eap72-template" />
+					<f:selectItem itemLabel="eap73-template" itemValue="eap73-template" />
+				</p:selectOneMenu>
+
+				<h:outputText value="Base Image" />
+				<p:selectOneMenu value="#{profileController.profile.image}"
+					effect="fold" editable="false" maxlength="30" size="30"
+					style="font-size: 9px;">
+
+					<f:selectItem itemLabel="eap70-openshift"
+						itemValue="jboss/wildfly:latest" />
+					<f:selectItem itemLabel="eap71-openshift"
+						itemValue="jboss/wildfly:latest" />
+				</p:selectOneMenu>
+
+			</h:panelGrid>
+
+			<h:panelGrid columns="3" columnClasses="label, value">
+
+				<h:outputText value="CPU Request" />
+				<p:spinner value="#{profileController.profile.cpuRequest}" min="1"
+					max="4000" maxlength="5" size="5" />
+				<p:selectOneMenu
+					value="#{profileController.profile.cpuRequestUnits}" effect="fold"
+					editable="false" maxlength="10" size="10" style="font-size: 9px;">
+					<f:selectItem itemLabel="millicores" itemValue="millicores" />
+					<f:selectItem itemLabel="cores" itemValue="cores" />
+				</p:selectOneMenu>
+
+				<h:outputText value="CPU Limit" />
+				<p:spinner value="#{profileController.profile.cpuLimit}" min="1"
+					max="4000" maxlength="5" size="5" />
+				<p:selectOneMenu value="#{profileController.profile.cpuLimitUnits}"
+					effect="fold" editable="false" maxlength="10" size="10"
+					style="font-size: 9px;">
+					<f:selectItem itemLabel="millicores" itemValue="millicores" />
+					<f:selectItem itemLabel="cores" itemValue="cores" />
+				</p:selectOneMenu>
+
+				<h:outputText value="Memory Request" />
+				<p:spinner value="#{profileController.profile.memoryRequest}"
+					min="1" max="4000" maxlength="5" size="5" />
+				<p:selectOneMenu
+					value="#{profileController.profile.memoryRequestUnits}"
+					effect="fold" editable="false" maxlength="10" size="10"
+					style="font-size: 9px;">
+					<f:selectItem itemLabel="MB" itemValue="MB" />
+					<f:selectItem itemLabel="GB" itemValue="GB" />
+					<f:selectItem itemLabel="MiB" itemValue="MiB" />
+					<f:selectItem itemLabel="GiB" itemValue="GiB" />
+				</p:selectOneMenu>
+
+				<h:outputText value="Memory Limit" />
+				<p:spinner value="#{profileController.profile.memoryLimit}" min="1"
+					max="4000" maxlength="5" size="5" />
+				<p:selectOneMenu
+					value="#{profileController.profile.memoryLimitUnits}" effect="fold"
+					editable="false" maxlength="10" size="10" style="font-size: 9px;">
+					<f:selectItem itemLabel="MB" itemValue="MB" />
+					<f:selectItem itemLabel="GB" itemValue="GB" />
+					<f:selectItem itemLabel="MiB" itemValue="MiB" />
+					<f:selectItem itemLabel="GiB" itemValue="GiB" />
+				</p:selectOneMenu>
+
+			</h:panelGrid>
+
+
+			<p:commandButton value="Save" update="growl,updatePanel"
+				process="updatePanel"
+				actionListener="#{profileController.updateProfile()}" />
+
+			<p:commandButton value="Close" update="growl" process="updatePanel"
+				actionListener="#{profileController.closeProfileDetails}"
+				immediate="true" />
+		</p:panel>
+
+
+	</h:form>
+
+
+</h:body>
+
+</html>

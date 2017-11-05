@@ -1,0 +1,347 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+<h:body>
+
+	<ui:composition template="/template/commonLayout.xhtml">
+
+		<ui:define name="content">
+
+			<p:dock position="bottom" id="dockMenu">
+				<!--  p:menuitem value="Select" icon="/resources/images/search.png"
+					onclick="PF('editSelection').show();" /-->
+				<p:menuitem value="Import" icon="/resources/images/update.png"
+					update="importFeedback" onclick="PF('importDialog').show();" />
+				<p:menuitem value="CLI" icon="/resources/images/cli.png"
+					onclick="PF('generateDialog').show();" />
+				<p:menuitem value="DEPLOY" icon="/resources/images/deploy.png"
+					actionListener="#{profileController.showDeploy()}" />
+				<p:menuitem value="SCHEDULE" icon="/resources/images/schedule.png"
+					actionListener="#{profileController.showSchedule()}" />
+			</p:dock>
+
+			<p:contextMenu for="table-wrapper" id="menu">
+				<p:menuitem value="Refresh List" icon="ui-icon-refresh"
+					actionListener="#{profileController.refreshProfiles()}"
+					update="messages,:form:tree" />
+				<p:menuitem value="Add #{profileController.classifier.simpleName}"
+					icon="ui-icon-search" id="addMenu"
+					onclick="triggerHiddenAddEvent(); return false;" />
+				<p:menuitem
+					value="Update #{profileController.classifier.simpleName}"
+					icon="ui-icon-arrowrefresh-1-w" id="updateMenu"
+					onclick="triggerHiddenUpdateEvent(); return false;" />
+				<p:menuitem value="Delete" icon="ui-icon-close"
+					onclick="PF('confirmation').show();" />
+				<p:separator />
+				<p:menuitem value="Package" icon="ui-icon-newwin"
+					actionListener="#{profileController.showDeploy()}" />
+				<p:separator />
+				<p:menuitem value="Deploy" icon="ui-icon-shuffle"
+					onclick="PF('deployment').show();" />
+				<p:separator />
+				<p:menuitem value="Synchronize" icon="ui-icon-refresh"
+					actionListener="#{profileController.synchronizeRemoteGIT()}" />
+			</p:contextMenu>
+
+
+			<p:commandButton id="hiddenAddCommand" styleClass="button"
+				action="#{profileController.addComponent()}" style="display:none">
+				<p:ajax event="dialogReturn" update=":form:tree" />
+
+			</p:commandButton>
+
+
+			<p:commandButton id="hiddenUpdateCommand" styleClass="button"
+				action="#{profileController.updateComponent()}" style="display:none">
+				<p:ajax event="dialogReturn" update=":form:tree" />
+
+			</p:commandButton>
+
+
+			<p:contextMenu for="script">
+				<p:menuitem value="Copy to Clipboard" icon="ui-icon-copy"
+					onclick="window.clipboardData.setData('text',document.getElementById('form:script').innerText)" />
+			</p:contextMenu>
+
+
+			<h:panelGroup layout="block" id="table-wrapper">
+
+				<p:treeTable value="#{profileController.root}" var="document"
+					selectionMode="single"
+					selection="#{profileController.selectedNode}" id="tree">
+					<p:ajax event="select" listener="#{profileController.onNodeSelect}"
+						update=":form:messages,:form:menu,:form:addMenu,:form:updateMenu" />
+
+					<f:facet name="header" id="headerFacet">
+						<h:outputText style="margin-right:10px;font-weight:bold"
+							value="Select Domain : " />
+
+						<p:autoComplete value="#{profileController.domain}"
+							completeMethod="#{profileController.completeDomain}"
+							style="font-size: 9px;">
+							<p:ajax event="change" update=":form:messages,:form:tree"
+								listener="#{profileController.selectDomain}" />
+							<p:ajax event="itemSelect" update=":form:messages,:form:tree"
+								listener="#{profileController.selectDomain}" />
+						</p:autoComplete>
+
+					</f:facet>
+
+					<p:column headerText="Name" sortBy="#{document.name}">
+						<h:outputText value="#{document.name}" />
+					</p:column>
+					<p:column headerText="Description" sortBy="#{document.description}">
+						<h:outputText value="#{document.description}" />
+					</p:column>
+				</p:treeTable>
+
+			</h:panelGroup>
+
+			<p:confirmDialog id="confirmDialog"
+				message="Are you sure about removing this record?"
+				header="Confirming record removal" severity="alert"
+				widgetVar="confirmation">
+
+				<p:commandButton value="Yes" update="messages,tree"
+					oncomplete="PF('confirmation').hide();"
+					actionListener="#{profileController.deleteComponent()}" />
+				<p:commandButton value="No" onclick="PF('confirmation').hide();"
+					type="button" />
+
+			</p:confirmDialog>
+
+			<p:confirmDialog id="deployDialog"
+				message="Are you sure you want to proceed deploying?"
+				header="Confirming deployment execution" severity="alert"
+				widgetVar="deployment">
+
+				<p:commandButton value="Yes" update="messages,tree"
+					oncomplete="PF('deployment').hide();"
+					actionListener="#{profileController.executeDeployment()}" />
+				<p:commandButton value="No" onclick="PF('deployment').hide();"
+					type="button" />
+
+			</p:confirmDialog>
+
+			<p:dialog
+				header="Generate CLI script based on Apache Velocity template"
+				widgetVar="generateDialog" resizable="false" id="dialogGenerate"
+				closable="false">
+
+				<h:panelGrid id="displayGenerate" columns="2" cellpadding="4">
+
+					<f:facet name="header">
+						<h:outputText value="Generated Script for CLI" />
+					</f:facet>
+
+					<h:outputText value="Script:" />
+					<p:inputTextarea rows="33" cols="220" maxlength="1200" id="script"
+						counterTemplate="{0} characters remaining." autoResize="false"
+						value="#{profileController.script}" readonly="true" />
+
+				</h:panelGrid>
+				<p:commandButton value="Generate"
+					actionListener="#{profileController.generateCLI()}" update="script" />
+
+				<p:commandButton value="Close"
+					oncomplete="PF('generateDialog').hide();" />
+
+			</p:dialog>
+
+
+			<p:dialog
+				header="Generate Docker Compose YAML script based on Apache Velocity template"
+				widgetVar="composeDialog" resizable="false" id="dialogCompose"
+				closable="false">
+
+				<h:panelGrid id="displayCompose" columns="2" cellpadding="4">
+
+					<f:facet name="header">
+						<h:outputText value="Generated Script for Docker Compose YAML" />
+					</f:facet>
+
+					<h:outputText value="Script:" />
+					<p:inputTextarea rows="33" cols="220" maxlength="1200"
+						id="composeScript" counterTemplate="{0} characters remaining."
+						autoResize="false" value="#{profileController.composeScript}"
+						readonly="true" />
+
+				</h:panelGrid>
+				<p:commandButton value="Generate"
+					actionListener="#{profileController.generateCompose()}"
+					update="composeScript" />
+
+				<p:commandButton value="Close"
+					oncomplete="PF('composeDialog').hide();" />
+
+			</p:dialog>
+
+
+			<p:dialog header="Docker Console" widgetVar="dockerDialog"
+				resizable="false" id="dialogDocker" closable="false">
+
+				<h:panelGrid id="displayDocker" columns="2" cellpadding="4">
+
+					<f:facet name="header">
+						<h:outputText value="Docker Console Output" />
+					</f:facet>
+
+					<h:outputText value="console :" />
+					<p:inputTextarea rows="33" cols="200" maxlength="1000"
+						id="dockerScript" counterTemplate="{0} characters remaining."
+						autoResize="false" value="#{profileController.dockerScript}"
+						readonly="true" />
+
+				</h:panelGrid>
+				<p:commandButton value="Rebuild"
+					actionListener="#{profileController.composeRebuild()}"
+					update="dockerScript" />
+				<p:commandButton value="Down"
+					actionListener="#{profileController.composeDown()}"
+					update="dockerScript" />
+				<p:commandButton value="Up"
+					actionListener="#{profileController.composeUp()}"
+					update="dockerScript" />
+				<p:commandButton value="PS"
+					actionListener="#{profileController.composePs()}"
+					update="dockerScript" />
+
+				<p:commandButton value="Close"
+					oncomplete="PF('dockerDialog').hide();" />
+
+			</p:dialog>
+
+
+			<p:dialog
+				header="Import Existing JBoss Configuration from standalone.xml"
+				widgetVar="importDialog" resizable="false" id="dialogImport"
+				closable="false">
+
+				<h:panelGrid id="displayImport" columns="2" cellpadding="4">
+
+					<p:fileUpload mode="advanced"
+						label="Select JBoss standalone XML file to import"
+						sizeLimit="30720000" showButtons="false"
+						update="messages,specifyImport,importFeedback"
+						process="specifyImport"
+						fileUploadListener="#{profileController.upload}" />
+
+				</h:panelGrid>
+				<h:panelGrid id="specifyImport" columns="2" cellpadding="4">
+
+					<h:outputText value="Name" />
+					<p:inputText value="#{profileController.profileName}" size="40"
+						id="profileName">
+						<p:ajax event="change"
+							listener="#{profileController.updateProfileName}" />
+					</p:inputText>
+
+					<h:outputText value="Domain" />
+
+					<p:autoComplete value="#{profileController.domainName}"
+						completeMethod="#{profileController.completeDomain}"
+						update="specifyImport" style="font-size: 9px;">
+						<p:ajax event="change" update=":form:messages,:form:tree"
+							listener="#{profileController.selectDomainName}" />
+						<p:ajax event="itemSelect" update=":form:messages,:form:tree"
+							listener="#{profileController.selectDomainName}" />
+					</p:autoComplete>
+
+				</h:panelGrid>
+				<h:panelGrid columns="1" cellpadding="4">
+
+					<p:inputTextarea rows="36" cols="140" maxlength="600"
+						id="importFeedback" counterTemplate="{0} characters remaining."
+						autoResize="false" value="#{profileController.feedback}"
+						readonly="true" />
+
+				</h:panelGrid>
+				<p:commandButton value="Close"
+					oncomplete="PF('importDialog').hide();"
+					actionListener="#{profileController.closeImport()}"
+					update="messages,:form:tree" />
+
+			</p:dialog>
+
+
+			<p:dialog header="Import Resources" widgetVar="resourceDialog"
+				resizable="false" id="dialogResource" closable="false">
+
+				<h:panelGrid id="displayResource" columns="2" cellpadding="4">
+
+					<f:facet name="header">
+						<h:outputText value="Import Weblogic Resources" />
+					</f:facet>
+					<h:outputText value="Browse" />
+
+					<p:fileUpload value="#{profileController.file}" mode="advanced"
+						label="Select WebLogic datasource or jms config XML file to import"
+						sizeLimit="30720000" showButtons="false"
+						update="messages,:form:tree"
+						fileUploadListener="#{profileController.uploadResource}" />
+
+
+				</h:panelGrid>
+				<p:commandButton value="Close"
+					oncomplete="PF('resourceDialog').hide();"
+					update="messages,:form:tree" />
+
+			</p:dialog>
+
+
+			<p:dialog header="Manage Domains" id="dialogSelection"
+				widgetVar="editSelection" resizable="false" width="500"
+				closable="false">
+				<h:panelGrid id="displaySelectionCriteria" columns="2"
+					cellpadding="4">
+
+					<h:outputText value="Name" />
+					<p:autoComplete value="#{profileController.domainName}"
+						completeMethod="#{profileController.completeDomain}"
+						style="font-size: 9px;">
+						<p:ajax event="change" update=":form:messages,:form:tree"
+							listener="#{profileController.selectDomainName}" />
+						<p:ajax event="itemSelect" update=":form:messages,:form:tree"
+							listener="#{profileController.selectDomainName}" />
+
+					</p:autoComplete>
+
+				</h:panelGrid>
+
+				<h:panelGrid id="displaySelectionButtons" columns="3"
+					cellpadding="4">
+					<p:commandButton value="Save" update="messages"
+						actionListener="#{profileController.updateDomain()}" />
+					<p:commandButton value="Delete" update="messages"
+						actionListener="#{profileController.deleteDomain()}" />
+
+					<p:commandButton value="Close" update="messages"
+						oncomplete="PF('editSelection').hide();" immediate="true" />
+				</h:panelGrid>
+			</p:dialog>
+
+			<p:growl id="messages" showDetail="true" sticky="true" />
+
+
+			<h:outputScript>
+
+      function triggerHiddenAddEvent() {
+        document.getElementById("form:hiddenAddCommand").click();
+      }      function triggerHiddenUpdateEvent() {
+        document.getElementById("form:hiddenUpdateCommand").click();
+      }
+    </h:outputScript>
+		</ui:define>
+
+
+
+	</ui:composition>
+
+</h:body>
+
+</html>
